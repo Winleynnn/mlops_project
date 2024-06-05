@@ -1,0 +1,9 @@
+*.sqlite
+*.sh
+*.drawio
+*.png
+*.ipynb
+*.7
+*.cache.sqlite
+checkpoints/
+lightning_logs/
