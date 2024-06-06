@@ -5,6 +5,7 @@ import pandas as pd
 from retry_requests import retry
 import datetime as dt
 
+# constant values
 CONST_DELTA = dt.timedelta(days = 7)
 CONST_STAMPS_START = 144
 CONST_STAMPS_END = 168
@@ -16,15 +17,30 @@ CONST_LAT_LONG = [52.52, 13.41]
 CONST_START_DATE = "2020-02-06"
 
 class DataLoader():
+    """
+    Loads data from API for: training, fine-tuning, inference
+
+    """
     def __init__(self) -> object: 
         self.columns = CONST_COLS
         self.begin_date_time = CONST_START_DATE
         self.lat = CONST_LAT_LONG[0]
         self.long = CONST_LAT_LONG[1]
-    def api_response(self, purpose):
+    def api_response(self, purpose:str) -> pd.DataFrame:
+        """
+        Configurate request to API and returns data based on request's config
+        
+        Args:
+        purpose: for which purpose data will be used (train/fine_tune/infer)
+
+        Returns:
+        result: pd.DataFrame with data
+        """
+        # making a request to API
         cache_session = requests_cache.CachedSession('.cache', expire_after = -1)
         retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
         openmeteo = openmeteo_requests.Client(session = retry_session)
+        # configurate output
         if(purpose=="train"):
             url = CONST_URL_ARCHIVE
             params = {
@@ -42,6 +58,7 @@ class DataLoader():
                 "hourly": self.columns,
                 "past_days":7
             }
+        # getting data
         responses = openmeteo.weather_api(url, params=params)
         response = responses[0]
         print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
@@ -66,13 +83,31 @@ class DataLoader():
             result = result.iloc[CONST_STAMPS_START:CONST_STAMPS_END,:]
         return result
     def load_train_data(self) -> pd.DataFrame:
+        """
+        Loads train data
+
+        Returns:
+        train_data: train data to load into model
+        """
         train_data = self.api_response("train")
         return train_data
     
     def load_fine_tune_data(self) -> pd.DataFrame:
+        """
+        Loads fine-tune data
+
+        Returns:
+        fine_tune_data: fine-tune data to load into model
+        """
         fine_tune_data = self.api_response("fine_tune")
         return fine_tune_data
     
     def load_infer_data(self) -> pd.DataFrame:
+        """
+        Loads infer data
+
+        Returns:
+        infer_data: infer data to make predictions
+        """
         infer_data = self.api_response("infer")
         return infer_data
