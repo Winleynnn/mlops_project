@@ -8,17 +8,21 @@ from pytorch_forecasting import TimeSeriesDataSet, QuantileLoss, TemporalFusionT
 from lightning.pytorch.tuner import Tuner
 import os.path
 import pandas as pd
+import hydra
+from omegaconf import DictConfig
+from loader import main
 
 
 from loader import DataLoader
 
-def train_model():
+@hydra.main(version_base=None, config_path="../config", config_name="config")
+def train_model(cfg:DictConfig):
     # loading data  
     data_path = os.path.join(os.path.dirname(__file__), '..', 'data.csv')
     if os.path.isfile(data_path):
         data = pd.read_csv(data_path)
     else:
-        load = DataLoader()
+        load = main(cfg, "train")
         data = load.load_train_data()
 
     # add classes for series and range of stamps

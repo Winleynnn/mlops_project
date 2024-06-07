@@ -1,20 +1,38 @@
 # imports
 from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer
 import os
-from loader import DataLoader
+import hydra
+from omegaconf import DictConfig
+from loader import main
+import pandas as pd
 
 
-def prepare_data():
+@hydra.main(version_base=None, config_path="../config", config_name="config")
+def upload_data(cfg:DictConfig):
+    """
+    Upload new data.
+
+    Returns:
+    Void of nothingness
+    """
+    data = main(cfg, "infer")
+    data["id"] = "first"
+    data["ind"] = [i for i in range(data.shape[0])]
+    print(data)
+    # костыль, потому что декорируемая гидрой функция не может возвращать значения(
+    data.to_csv("infer_data.csv")
+
+def prepare_data(path_to_data:str):
     """
     Prepares new data.
+
+    Args:
+    path_to_data: path to csv file with inference data
 
     Returns:
     dataloader: Data to load into model
     """
-    data = DataLoader().load_infer_data()
-    data["id"] = "first"
-    data["ind"] = [i for i in range(data.shape[0])]
-    print(data["ind"])
+    data = pd.read_csv(path_to_data)
     max_encoder_length = 24
     max_prediction_length = 6
     dataset = TimeSeriesDataSet(
@@ -28,8 +46,8 @@ def prepare_data():
         min_prediction_length=5,
         add_relative_time_idx = True,
     )
-    
     dataloader = dataset.to_dataloader(train=False, batch_size=64, num_workers=0)
+    print(dataloader)
     
     return dataloader
 
@@ -66,13 +84,14 @@ def make_predictions(model, dataloader):
     predictions = model.predict(dataloader).cpu().numpy()[0]
 
     print(predictions)
-    
+       
     
     return predictions
 
-data = prepare_data()
+upload_data()
+data = prepare_data("infer_data.csv")
+print(data)
 
 model = load_fine_tuned_checkpoint("checkpoints/")
 
 predictions = make_predictions(model, data)
-print(predictions)

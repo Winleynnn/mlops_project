@@ -1,0 +1,14 @@
+time:
+  time_delta: 7
+  stamps_start: 144
+  stamps_end: 168
+  start_date: "2020-02-06"
+urls:
+  url_archive: "https://archive-api.open-meteo.com/v1/archive"
+  url_forecast: "https://api.open-meteo.com/v1/forecast"
+data:
+  columns_to_train: ["temperature_2m", "relative_humidity_2m", "dew_point_2m", "apparent_temperature", "precipitation", "rain", 
+            "snowfall", "direct_radiation", "sunshine_duration", "wind_speed_10m", "wind_direction_10m"]
+  lat_long: [52.52, 13.41]
+ckpts:
+  best_check: 'best-checkpoint.ckpt'

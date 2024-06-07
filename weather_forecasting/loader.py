@@ -4,28 +4,25 @@ import requests_cache
 import pandas as pd
 from retry_requests import retry
 import datetime as dt
-
-# constant values
-CONST_DELTA = dt.timedelta(days = 7)
-CONST_STAMPS_START = 144
-CONST_STAMPS_END = 168
-CONST_URL_ARCHIVE = "https://archive-api.open-meteo.com/v1/archive"
-CONST_URL_FORECAST = "https://api.open-meteo.com/v1/forecast"
-CONST_COLS = ["temperature_2m", "relative_humidity_2m", "dew_point_2m", "apparent_temperature", "precipitation", "rain", 
-            "snowfall", "direct_radiation", "sunshine_duration", "wind_speed_10m", "wind_direction_10m"]
-CONST_LAT_LONG = [52.52, 13.41]
-CONST_START_DATE = "2020-02-06"
+from omegaconf import DictConfig, OmegaConf
 
 class DataLoader():
     """
     Loads data from API for: training, fine-tuning, inference
 
-    """
-    def __init__(self) -> object: 
-        self.columns = CONST_COLS
-        self.begin_date_time = CONST_START_DATE
-        self.lat = CONST_LAT_LONG[0]
-        self.long = CONST_LAT_LONG[1]
+    """  
+    def __init__(self, cfg: DictConfig):
+        cfg = OmegaConf.to_container(cfg, resolve=True)
+        print(cfg)
+        self.columns = cfg['data']['columns_to_train']
+        self.begin_date_time = cfg['time']['stamps_start']
+        self.lat = cfg['data']['lat_long'][0]
+        self.long = cfg['data']['lat_long'][1]
+        self.url_archive = cfg['urls']['url_archive']
+        self.url_forecast = cfg['urls']['url_forecast']
+        self.time_delta = cfg['time']['time_delta']
+        self.stamps_start = cfg['time']['stamps_start']
+        self.stamps_end = cfg['time']['stamps_end']
     def api_response(self, purpose:str) -> pd.DataFrame:
         """
         Configurate request to API and returns data based on request's config
@@ -36,27 +33,28 @@ class DataLoader():
         Returns:
         result: pd.DataFrame with data
         """
+        print(self.columns)
         # making a request to API
         cache_session = requests_cache.CachedSession('.cache', expire_after = -1)
         retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
         openmeteo = openmeteo_requests.Client(session = retry_session)
         # configurate output
         if(purpose=="train"):
-            url = CONST_URL_ARCHIVE
+            url = self.url_archive
             params = {
                 "latitude": self.lat,
                 "longitude": self.long,
                 "start_date": self.begin_date_time,
-                "end_date": (dt.datetime.today() - CONST_DELTA).strftime('%Y-%m-%d'),
+                "end_date": (dt.datetime.today() - dt.timedelta(days = self.time_delta)).strftime('%Y-%m-%d'),
                 "hourly": self.columns
             }
         elif(purpose=="infer" or purpose=="fine_tune"):
-            url=CONST_URL_FORECAST
+            url=self.url_forecast
             params = {
                 "latitude": self.lat,
                 "longitude": self.long,
                 "hourly": self.columns,
-                "past_days":7
+                "past_days":self.time_delta
             }
         # getting data
         responses = openmeteo.weather_api(url, params=params)
@@ -78,9 +76,9 @@ class DataLoader():
         result = pd.DataFrame(data = hourly_data)
         result.dropna(inplace=True)
         if(purpose=="fine_tune"):
-            result = result.iloc[:CONST_STAMPS_START,:]
+            result = result.iloc[:self.stamps_start,:]
         elif(purpose=="infer"):
-            result = result.iloc[CONST_STAMPS_START:CONST_STAMPS_END,:]
+            result = result.iloc[self.stamps_start:self.stamps_end,:]
         return result
     def load_train_data(self) -> pd.DataFrame:
         """
@@ -111,3 +109,15 @@ class DataLoader():
         """
         infer_data = self.api_response("infer")
         return infer_data
+    
+
+
+def main(cfg: DictConfig, purpose:str):
+    data_loader = DataLoader(cfg)
+    if(purpose=="train"):
+        data = data_loader.load_train_data()
+    elif(purpose=="fine_tine"):
+        data = data_loader.load_fine_tune_data()
+    elif(purpose=="infer"):
+        data = data_loader.load_infer_data()
+    return data

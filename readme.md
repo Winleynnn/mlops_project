@@ -4,17 +4,108 @@
 .
 ├── =1.7
 ├── Dockerfile
+├── __pycache__
+│   └── commands.cpython-310.pyc
 ├── api_test.ipynb
 ├── checkpoints
+│   ├── best-checkpoint-v1.ckpt
+│   ├── best-checkpoint-v2.ckpt
 │   ├── best-checkpoint.ckpt
 │   └── fine_tuned_model.ckpt
 ├── commands.py
+├── config
+│   ├── __init__.py
+│   └── config.yaml
+├── images
+│   └── scheme.png
+├── infer_data.csv
+├── lightning_logs
+│   ├── lightning_logs
+│   │   ├── version_0
+│   │   │   ├── events.out.tfevents.1717777439.Yaroslav.759967.0
+│   │   │   ├── events.out.tfevents.1717777466.Yaroslav.759967.1
+│   │   │   └── hparams.yaml
+│   │   └── version_1
+│   │       ├── events.out.tfevents.1717777887.Yaroslav.766945.0
+│   │       ├── events.out.tfevents.1717777898.Yaroslav.766945.1
+│   │       └── hparams.yaml
+│   └── version_0
+│       ├── events.out.tfevents.1717801175.Yaroslav.847642.0
+│       └── hparams.yaml
+├── outputs
+│   ├── 2024-06-07
+│   │   ├── 23-05-24
+│   │   │   └── infer.log
+│   │   ├── 23-14-41
+│   │   │   └── infer.log
+│   │   ├── 23-15-49
+│   │   │   └── infer.log
+│   │   └── 23-24-12
+│   │       └── infer.log
+│   └── 2024-06-08
+│       ├── 00-13-40
+│       │   └── loader.log
+│       ├── 00-23-54
+│       │   └── infer.log
+│       ├── 00-25-05
+│       │   └── infer.log
+│       ├── 00-25-48
+│       │   └── infer.log
+│       ├── 00-26-25
+│       │   └── infer.log
+│       ├── 00-26-49
+│       │   └── infer.log
+│       ├── 00-28-30
+│       │   └── infer.log
+│       ├── 00-33-16
+│       │   └── infer.log
+│       ├── 00-33-43
+│       │   └── infer.log
+│       ├── 00-35-33
+│       │   └── infer.log
+│       ├── 00-41-53
+│       │   └── infer.log
+│       ├── 00-43-41
+│       │   └── infer.log
+│       ├── 00-45-21
+│       │   └── infer.log
+│       ├── 00-46-22
+│       │   └── infer.log
+│       ├── 00-47-09
+│       │   └── infer.log
+│       ├── 00-50-44
+│       │   └── infer.log
+│       ├── 00-54-29
+│       │   └── infer.log
+│       ├── 00-55-26
+│       │   └── infer.log
+│       ├── 00-57-38
+│       │   └── infer.log
+│       ├── 01-02-31
+│       │   └── infer.log
+│       ├── 01-03-29
+│       │   └── infer.log
+│       ├── 01-15-59
+│       │   └── infer.log
+│       ├── 01-35-33
+│       │   └── infer.log
+│       ├── 01-36-10
+│       │   └── infer.log
+│       ├── 01-42-34
+│       │   └── infer.log
+│       ├── 01-43-32
+│       │   └── infer.log
+│       ├── 01-44-23
+│       │   └── infer.log
+│       └── 01-59-33
+│           └── infer.log
 ├── readme.md
 ├── requirements.txt
-├── scheme.png
 └── weather_forecasting
     ├── __init__.py
     ├── __pycache__
+    │   ├── __init__.cpython-310.pyc
+    │   ├── infer.cpython-310.pyc
     │   └── loader.cpython-310.pyc
     ├── fine_tune.py
     ├── infer.py
@@ -26,6 +117,7 @@
 |----|--------|--------|
 |23.02.2024|Составлен readme.md|Добавлено текстовое описание проекта: используются временные ряды [погодных данных](https://open-meteo.com/en/docs/historical-weather-api) для прогнозирования метеорологических условий, с помощью [LSTM-nn](https://www.tensorflow.org/tutorials/structured_data/time_series#recurrent_neural_network).|
 |06.06.2024|Написан код обучения, дообучения и инференса, сформирован список зависимостей и docker-file|Написан код для получения данных из API. Написан код для обучения нейронки на основе PyTorch_forecasting. Она автоматически дообучается каждые 24 часа, пока предиктит только одну переменную одного временного ряда на 6 часов вперед. Docker Image получается довольно большим из-за того, что pytroch_forecasting ставит с собой торч с кучей зависимостей, хотя по факту используется только lightning.|
+|08.06.2024|Добавлены DVC и Hydra|Данные для обучения загружены на Google Drive с помощью DVC, правда, при попытке забилдить DVC сразу вместе с пуллом ссылки на них выходит на аутентификацию и дальше не собирается. Но без этого все ок.|
 ## Описание проекта:
   1. Формулировка задачи: прогнозирование погодных условий с помощью временных рядов метеоданных. Полученные прогнозы можно использовать для различных целей:
         - Определение потенциальных погодных условий для корректировки стиля верхней одежды

@@ -6,6 +6,10 @@ import os
 from lightning.pytorch.callbacks import ModelCheckpoint
 from loader import DataLoader
 import schedule
+import hydra
+from omegaconf import DictConfig
+from loader import main
+import pandas as pd
 
 def load_best_checkpoint(checkpoint_dir: str):
     """
@@ -25,15 +29,32 @@ def load_best_checkpoint(checkpoint_dir: str):
     model = TemporalFusionTransformer.load_from_checkpoint(best_model_path)
     return model
 
-def prepare_data():
+@hydra.main(version_base=None, config_path="../config", config_name="config")
+def upload_data(cfg:DictConfig):
+    """
+    Upload new data.
+
+    Returns:
+    Void of nothingness
+    """
+    data = main(cfg, "fine_tune")
+    data["id"] = "first"
+    data["ind"] = [i for i in range(data.shape[0])]
+    print(data)
+    # костыль, потому что декорируемая гидрой функция не может возвращать значения(
+    data.to_csv("fine_tune_data.csv")
+def prepare_data(path_to_data:str):
     """
     Prepares new data.
+
+    Args:
+    path_to_data: path to csv file with inference data
 
     Returns:
     dataloader: Data to load into model
     """
     # read data from API
-    data = DataLoader().load_fine_tune_data()
+    data = data = pd.read_csv(path_to_data)
     data["id"] = "first"*data.shape[0]
     data["ind"] = [i for i in range(data.shape[0])]
     max_encoder_length = 36
@@ -54,6 +75,7 @@ def prepare_data():
     
     return dataloader
 
+
 def fine_tune_model(checkpoint_dir: str):
     """
     Fine-tune the model on new data.
@@ -64,8 +86,10 @@ def fine_tune_model(checkpoint_dir: str):
     # load the best trained model
     model = load_best_checkpoint(checkpoint_dir)\
     
+    upload_data()
+
     # prepare new data
-    new_dataloader = prepare_data()
+    new_dataloader = prepare_data("fine_tune_data.csv")
 
     # define a checkpoint callback
     checkpoint_callback = ModelCheckpoint(
