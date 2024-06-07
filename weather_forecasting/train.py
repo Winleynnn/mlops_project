@@ -6,23 +6,30 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 from pytorch_forecasting import TimeSeriesDataSet, QuantileLoss, TemporalFusionTransformer
 from lightning.pytorch.tuner import Tuner
+import os.path
+import pandas as pd
+
 
 from loader import DataLoader
 
 def train_model():
-    # loading data    
-    load = DataLoader()
-    data = load.load_train_data()
+    # loading data  
+    data_path = os.path.join(os.path.dirname(__file__), '..', 'data.csv')
+    if os.path.isfile(data_path):
+        data = pd.read_csv(data_path)
+    else:
+        load = DataLoader()
+        data = load.load_train_data()
 
     # add classes for series and range of stamps
     data["id"] = "first"*data.shape[0]
     data["ind"] = [i for i in range(data.shape[0])]
 
-    # define the dataset, i.e. add metadata to pandas dataframe for the model to understand it
+    # define encoder and prediction length
     max_encoder_length = 24
     max_prediction_length = 6
-    # training_cutoff = "YYYY-MM-DD"  # day for cutoff
 
+    # convert to TimeSeriesDataSet
     training = TimeSeriesDataSet(
         data,
         time_idx= "ind",  
@@ -33,7 +40,7 @@ def train_model():
         add_relative_time_idx = True
     )
 
-    # create validation dataset using the same normalization techniques as for the training dataset
+    # create validation dataset 
     validation = TimeSeriesDataSet.from_dataset(training, data, min_prediction_idx=training.index.time.max() + 1, stop_randomization=True)
 
     # convert datasets to dataloaders for training
@@ -41,16 +48,14 @@ def train_model():
     train_dataloader = training.to_dataloader(train=True, batch_size=batch_size, num_workers=2)
     val_dataloader = validation.to_dataloader(train=False, batch_size=batch_size, num_workers=2)
 
-    # create PyTorch Lighning Trainer with early stopping
-    # early_stop_callback = EarlyStopping(monitor="val_loss", min_delta=1e-4, patience=1, verbose=False, mode="min")
+    #checkpoint callback for saving checkpoints of model
     checkpoint_callback = ModelCheckpoint(
-        monitor='val_loss',  # or the metric you want to monitor
-        dirpath='checkpoints/',  # directory to save checkpoints
-        filename='best-checkpoint',  # name for your best checkpoint
-        save_top_k=1,  # save only the best checkpoint
-        mode='min'  # 'min' for minimizing the monitored metric, 'max' for maximizing
+        monitor='val_loss',  
+        dirpath='checkpoints/',  
+        filename='best-checkpoint',  
+        save_top_k=1,  
+        mode='min'  
     )
-    # lr_logger = LearningRateMonitor()
     trainer = pl.Trainer(
         max_epochs=50,
         accelerator="gpu",  

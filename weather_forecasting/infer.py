@@ -1,5 +1,4 @@
-import torch
-from lightning.pytorch import Trainer
+# imports
 from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer
 import os
 from loader import DataLoader
@@ -7,14 +6,10 @@ from loader import DataLoader
 
 def prepare_data():
     """
-    Prepare data for training or fine-tuning.
-    
-    Args:
-    - data_path (str): Path to the data file (CSV).
-    - training_dataset (TimeSeriesDataSet): The original training dataset used to create the new dataset.
-    
+    Prepares new data.
+
     Returns:
-    - dataloader: DataLoader for the dataset.
+    dataloader: Data to load into model
     """
     data = DataLoader().load_infer_data()
     data["id"] = "first"
@@ -74,6 +69,7 @@ def make_predictions(model, dataloader):
     
     
     return predictions
+
 data = prepare_data()
 
 model = load_fine_tuned_checkpoint("checkpoints/")

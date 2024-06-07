@@ -6,3 +6,4 @@
 *.cache.sqlite
 checkpoints/
 lightning_logs/
+.csv

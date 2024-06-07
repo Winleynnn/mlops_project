@@ -1,3 +1,4 @@
+# imports for fine_tuning
 import torch
 from lightning.pytorch import Trainer
 from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer
@@ -26,22 +27,18 @@ def load_best_checkpoint(checkpoint_dir: str):
 
 def prepare_data():
     """
-    Prepare data for training or fine-tuning.
-    
-    Args:
-    - data_path (str): Path to the data file (CSV).
-    - training_dataset (TimeSeriesDataSet): The original training dataset used to create the new dataset.
-    
+    Prepares new data.
+
     Returns:
-    - dataloader: DataLoader for the dataset.
+    dataloader: Data to load into model
     """
-    # Read data from API
+    # read data from API
     data = DataLoader().load_fine_tune_data()
     data["id"] = "first"*data.shape[0]
     data["ind"] = [i for i in range(data.shape[0])]
     max_encoder_length = 36
     max_prediction_length = 6
-    # Create TimeSeriesDataSet for data
+    # create TimeSeriesDataSet for data
     dataset = TimeSeriesDataSet(
         data,
         time_idx= "ind",  
@@ -52,7 +49,7 @@ def prepare_data():
         add_relative_time_idx = True
     )
     
-    # Create DataLoader for dataset
+    # create DataLoader for dataset
     dataloader = dataset.to_dataloader(train=True, batch_size=64, num_workers=0)
     
     return dataloader
@@ -63,20 +60,14 @@ def fine_tune_model(checkpoint_dir: str):
     
     Args:
     - checkpoint_dir (str): Path to the directory containing checkpoints.
-    - new_data_path (str): Path to the new data file (CSV).
-    - training_data_path (str): Path to the original training data file (CSV).
     """
-    # Load the best trained model
+    # load the best trained model
     model = load_best_checkpoint(checkpoint_dir)\
     
-    # Freeze all the layers of the pre-trained model
-    # for param in model.parameters():
-    #     param.requires_grad = False
-    
-    # Prepare new data
+    # prepare new data
     new_dataloader = prepare_data()
 
-    # Define a checkpoint callback
+    # define a checkpoint callback
     checkpoint_callback = ModelCheckpoint(
         dirpath=checkpoint_dir,
         filename='fine-tuned-checkpoint-{epoch:02d}-{val_loss:.2f}',
@@ -85,7 +76,7 @@ def fine_tune_model(checkpoint_dir: str):
         mode='min'
     )
 
-    # Fine-tune the model
+    # fine-tune the model
     trainer = Trainer(
                       callbacks=[checkpoint_callback], 
                       max_epochs=10,
@@ -94,7 +85,7 @@ def fine_tune_model(checkpoint_dir: str):
                       )
     trainer.fit(model, train_dataloaders=new_dataloader)
     
-    # Save the fine-tuned model
+    # save the fine-tuned model
     torch.save(model.state_dict(), os.path.join(checkpoint_dir, 'fine_tuned_model.ckpt'))
 
 schedule.every().day.at("00:00").do(fine_tune_model(checkpoint_dir="checkpoints/"))

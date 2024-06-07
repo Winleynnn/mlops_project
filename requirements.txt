@@ -15,3 +15,4 @@ tensorboard-data-server==0.7.2
 tensorboardX==2.6.2.2
 threadpoolctl==3.5.0
 torchmetrics==1.4.0.post0
+dvc==3.51.2

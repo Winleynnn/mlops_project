@@ -4,7 +4,6 @@
 
 # FROM $BASE_CONTAINER:$UBUNTU_VERSION
 FROM python:3.10-slim
-ARG PYTHON_VERSION=3.10
 
 ENV PYTHON_VERSION 3.10
 # Set the working directory in the container
@@ -18,6 +17,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code into the container
 COPY . .
+
+RUN dvc init
+RUN dvc remote add -d myremote gdrive://<gdrive_folder_id>
+RUN dvc pull
 
 # Set environment variables to avoid issues with stdout/stderr buffering
 ENV PYTHONUNBUFFERED=1
