@@ -47,9 +47,6 @@ RUN git config --global user.name "Stariyi BOG"
 # Copy the rest of the application code into the container
 COPY . .
 RUN apt install git-all -y
-RUN git init
-RUN git add .
-RUN git commit -m "cool"
 
 
 # Set environment variables to avoid issues with stdout/stderr buffering
