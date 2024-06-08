@@ -23,9 +23,18 @@ RUN apt-get update \
     ffmpeg \
     libsm6 \
     libxext6 \
-    python3-pip
+    python3-pip \
+    wget \
+    https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+    && mkdir /root/.conda \
+    && bash Miniconda3-latest-Linux-x86_64.sh -b \
+    && rm -f Miniconda3-latest-Linux-x86_64.sh
 
-# Copy the requirements.txt file into the container
+
+RUN conda create -n myenv python=3.10\
+  && conda activate myenv
+
+    # Copy the requirements.txt file into the container
 COPY requirements.txt .
 
 # Install the required Python packages
