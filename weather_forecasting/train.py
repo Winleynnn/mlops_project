@@ -1,6 +1,6 @@
 # imports for loading data
 import os.path
-
+import mlflow
 import hydra
 # imports for training
 import lightning.pytorch as pl
@@ -8,11 +8,13 @@ import pandas as pd
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.tuner import Tuner
-from loader import DataLoader, main
+from loader import main
 from omegaconf import DictConfig
 from pytorch_forecasting import (QuantileLoss, TemporalFusionTransformer,
                                  TimeSeriesDataSet)
 
+
+mlflow.pytorch.autolog()
 
 @hydra.main(version_base=None, config_path="../config", config_name="config")
 def train_model(cfg: DictConfig):
@@ -21,8 +23,7 @@ def train_model(cfg: DictConfig):
     if os.path.isfile(data_path):
         data = pd.read_csv(data_path)
     else:
-        load = main(cfg, "train")
-        data = load.load_train_data()
+        data = main(cfg, "train")
 
     # add classes for series and range of stamps
     data["id"] = "first" * data.shape[0]
@@ -69,9 +70,8 @@ def train_model(cfg: DictConfig):
         mode="min",
     )
     trainer = pl.Trainer(
-        max_epochs=50,
-        accelerator="gpu",
-        devices=-1,
+        max_epochs=10,
+        accelerator="auto",
         gradient_clip_val=0.1,
         limit_train_batches=30,  # 30 batches per epoch
         callbacks=[checkpoint_callback],

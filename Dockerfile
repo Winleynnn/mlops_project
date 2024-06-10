@@ -53,4 +53,4 @@ RUN apt install git-all -y
 ENV PYTHONUNBUFFERED=1
 
 # Specify the entrypoint for the container
-ENTRYPOINT ["python", "commands.py"]
+ENTRYPOINT ["/bin/bash"]

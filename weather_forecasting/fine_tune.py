@@ -7,7 +7,7 @@ import schedule
 import torch
 from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import ModelCheckpoint
-from loader import DataLoader, main
+from loader import main
 from omegaconf import DictConfig
 from pytorch_forecasting import TemporalFusionTransformer, TimeSeriesDataSet
 
@@ -105,7 +105,7 @@ def fine_tune_model(checkpoint_dir: str):
 
     # fine-tune the model
     trainer = Trainer(
-        callbacks=[checkpoint_callback], max_epochs=10, accelerator="gpu", devices=-1
+        callbacks=[checkpoint_callback], max_epochs=10, accelerator="auto"
     )
     trainer.fit(model, train_dataloaders=new_dataloader)
 

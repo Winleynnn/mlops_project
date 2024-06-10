@@ -7,3 +7,5 @@
 checkpoints/
 lightning_logs/
 __pycache__/*
+outputs/
+mlruns/

@@ -18,7 +18,7 @@ class DataLoader:
         cfg = OmegaConf.to_container(cfg, resolve=True)
         print(cfg)
         self.columns = cfg["data"]["columns_to_train"]
-        self.begin_date_time = cfg["time"]["stamps_start"]
+        self.begin_date_time = cfg["time"]["start_date"]
         self.lat = cfg["data"]["lat_long"][0]
         self.long = cfg["data"]["lat_long"][1]
         self.url_archive = cfg["urls"]["url_archive"]
@@ -54,6 +54,7 @@ class DataLoader:
                 ).strftime("%Y-%m-%d"),
                 "hourly": self.columns,
             }
+            print(params)
         elif purpose == "infer" or purpose == "fine_tune":
             url = self.url_forecast
             params = {
@@ -124,7 +125,7 @@ def main(cfg: DictConfig, purpose: str):
     data_loader = DataLoader(cfg)
     if purpose == "train":
         data = data_loader.load_train_data()
-    elif purpose == "fine_tine":
+    elif purpose == "fine_tune":
         data = data_loader.load_fine_tune_data()
     elif purpose == "infer":
         data = data_loader.load_infer_data()
