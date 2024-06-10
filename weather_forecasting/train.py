@@ -15,6 +15,7 @@ from pytorch_forecasting import (QuantileLoss, TemporalFusionTransformer,
 
 
 mlflow.pytorch.autolog()
+mlflow.set_tracking_uri("http://localhost:5000")
 
 @hydra.main(version_base=None, config_path="../config", config_name="config")
 def train_model(cfg: DictConfig):
