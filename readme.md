@@ -3,8 +3,6 @@
 ```
 .
 ├── Dockerfile
-├── __pycache__
-│   └── commands.cpython-310.pyc
 ├── commands.py
 ├── config
 │   ├── __init__.py
@@ -15,10 +13,6 @@
 ├── requirements.txt
 └── weather_forecasting
     ├── __init__.py
-    ├── __pycache__
-    │   ├── __init__.cpython-310.pyc
-    │   ├── infer.cpython-310.pyc
-    │   └── loader.cpython-310.pyc
     ├── fine_tune.py
     ├── infer.py
     ├── loader.py
